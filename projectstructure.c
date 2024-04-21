@@ -40,14 +40,69 @@ void inicializarJobShopExemplo(JobShop *job_shop) {
     }
 }
 
+// Função para exibir uma operação
+void mostrarOperacao(Operacao operacao, int inicio) {
+    printf("Maquina %d, Tempo de Inicio %d, Duracao %d\n", operacao.maquina, inicio, operacao.duracao);
+}
+
 // Função para exibir o problema do Job-Shop (apenas para fins de depuração)
 void mostrarJobShop(JobShop *job_shop) {
+    for (int i = 0; i < NUM_TRABALHOS; i++) {
+        printf("Trabalho %d:\n", i);
+        for (int j = 0; j < NUM_OPERACOES_MAX; j++) {
+            printf("  Operacao %d: ", j);
+            mostrarOperacao(job_shop->trabalhos[i].operacoes[j], 0);
+        }
+    }
+}
+
+// Função para calcular o tempo total de conclusão de um escalonamento
+int calcularTempoTotal(JobShop *job_shop) {
+    int tempo_total = 0;
+    int tempo_inicio[NUM_MAQUINAS] = {0}; // Tempo de início das operações em cada máquina
+
+    for (int i = 0; i < NUM_TRABALHOS; i++) {
+        for (int j = 0; j < NUM_OPERACOES_MAX; j++) {
+            int maquina = job_shop->trabalhos[i].operacoes[j].maquina;
+            int duracao = job_shop->trabalhos[i].operacoes[j].duracao;
+            int inicio = tempo_inicio[maquina];
+            tempo_inicio[maquina] += duracao; // Atualizar o tempo de início da próxima operação na máquina
+            tempo_total = (tempo_inicio[maquina] > tempo_total) ? tempo_inicio[maquina] : tempo_total;
+        }
+    }
+
+    return tempo_total;
+}
+
+// Função para calcular o próximo escalonamento
+int proximoEscalonamento(JobShop *job_shop) {
+    int i, j;
+
+    // Encontrar a próxima tarefa a ser trocada
+    for (i = NUM_TRABALHOS - 1; i >= 0; i--) {
+        for (j = NUM_OPERACOES_MAX - 1; j >= 0; j--) {
+            if (job_shop->trabalhos[i].operacoes[j].maquina < NUM_MAQUINAS - 1) {
+                job_shop->trabalhos[i].operacoes[j].maquina++;
+                return 1; // Encontrou um próximo escalonamento
+            } else {
+                job_shop->trabalhos[i].operacoes[j].maquina = 0;
+            }
+        }
+    }
+
+    return 0; // Não há mais escalonamentos possíveis
+}
+
+// Função para exibir a matriz de soluções
+void mostrarMatriz(JobShop *job_shop) {
+    printf("\nMatriz de Solucoes:\n");
     for (int i = 0; i < NUM_TRABALHOS; i++) {
         printf("Trabalho %d:\n", i);
         for (int j = 0; j < NUM_OPERACOES_MAX; j++) {
             printf("  Operacao %d: Maquina %d, Duracao %d\n", j, job_shop->trabalhos[i].operacoes[j].maquina, job_shop->trabalhos[i].operacoes[j].duracao);
         }
     }
+    printf("\n");
 }
 
 int main() {
@@ -60,6 +115,22 @@ int main() {
 
     // Exibir o problema do Job-Shop (apenas para fins de depuração)
     mostrarJobShop(&job_shop);
+
+    // Calcular e exibir todas as possíveis soluções e o tempo total de conclusão de cada uma
+    printf("Todas as possiveis solucoes e seus tempos totais de conclusao:\n");
+    clock_t start = clock();
+    int num_solucoes = 0;
+    do {
+        printf("Solucao %d:\n", num_solucoes + 1);
+        mostrarMatriz(&job_shop);
+        int tempo_total = calcularTempoTotal(&job_shop);
+        printf("Tempo total de conclusao: %d\n", tempo_total);
+        printf("-------------------------\n");
+        num_solucoes++;
+    } while (proximoEscalonamento(&job_shop));
+    clock_t end = clock();
+    double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("Tempo decorrido: %f segundos\n", time_spent);
 
     return 0;
 }
