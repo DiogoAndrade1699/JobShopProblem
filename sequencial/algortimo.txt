@@ -1,0 +1,16 @@
+Para o job 0:
+
+A máquina 0 começa imediatamente (start = 0).
+A máquina 1 começa após a máquina 0 terminar, então seu start é o tempo de duração da máquina 0 (3) + o start da máquina 0 (0) = 3.
+A máquina 2 começa após a máquina 1 terminar, então seu start é o tempo de duração da máquina 1 (2) + o start da máquina 1 (3) = 5.
+Para o job 1:
+
+A máquina 0 começa após a máquina 0 do job 0 terminar, então seu start é o tempo de duração da máquina 0 do job 0 (3) + o start da máquina 0 do job 0 (0) = 3.
+A máquina 2 começa após a máquina 0 terminar, então seu start é a soma do seu ultimo start com o tempo de duracao da maquina anterior, 5 + 2 = 7.
+A máquina 1 começa após a máquina 2 terminar, é somar o start da maquina anterior com o tempo de duracao da maquina anterior, 7 + 1 = 8.
+
+Para o job 2:
+
+A máquina 1 começa após a máquina 1 do job 1 terminar, então seu start é o tempo de duração da máquina 1 do job 1 (4) + o start da máquina 1 do job 1 (8) = 12.
+A máquina 2 começa após a máquina 1 terminar, então seu start é o tempo de duração da máquina 1 do job 2 (4) + o start da máquina 1 do job 2 (12) = 16.
+A máquina 0 começa após a máquina 2 do job 2 terminar, então seu start é o tempo de duração da máquina 2 do job 2 (3) + o s
