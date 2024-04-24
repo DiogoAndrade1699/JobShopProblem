@@ -1,0 +1,64 @@
+Explicação Detalhada do Código Atualizado
+O código apresentado para calcular os starts e mostrar os resultados do problema Jobshop com leitura de um arquivo TXT foi aprimorado para considerar as dependências entre máquinas e jobs, resultando em cálculos precisos dos tempos de início e do tempo máximo de conclusão para todos os jobs.
+
+Análise Passo a Passo:
+
+1. Função calcularStarts:
+
+Declaração de Variáveis:
+
+starts: Matriz bidimensional para armazenar os tempos de início de cada operação (job, máquina).
+max_conclusao: Variável para armazenar o tempo máximo de conclusão (inicializada com 0).
+maquina_livre: Vetor para armazenar o tempo de término da última operação em cada máquina (inicializado com 0).
+Impressão do Cabeçalho da Tabela:
+
+Exibe as colunas "Job", "Machine" e "Start".
+Loop Principal para Cada Job:
+
+Variável start_anterior: Armazena o tempo de início da operação anterior (inicializado com 0 para cada job).
+
+Loop para Cada Operação do Job Atual:
+
+Leitura da Máquina e Duração:
+
+machine: Armazena a máquina em que a operação será executada.
+duration: Armazena a duração da operação.
+Verificação da Disponibilidade da Máquina:
+
+Utiliza o vetor maquina_livre para verificar se a máquina desejada (machine) está livre no instante em que a operação deveria começar (start_anterior).
+Se a máquina estiver ocupada, o start_anterior é atualizado com o tempo de término da última operação na máquina (maquina_livre[machine]).
+Cálculo do Tempo de Início:
+
+start: Armazena o tempo de início da operação atual.
+É calculado como a soma do start_anterior e da duration.
+Impressão do Resultado na Tabela:
+
+Exibe o job, a máquina e o tempo de início da operação atual.
+Atualização do maquina_livre:
+
+Armazena o tempo de término da operação atual (start + duration) no vetor maquina_livre[machine].
+Atualização do start_anterior para a Próxima Operação:
+
+O start_anterior é atualizado com o tempo de início da operação atual (start), independentemente de ser do mesmo job ou não.
+Atualização do Tempo Máximo de Conclusao:
+
+Verifica se o tempo de início da última operação do job atual (starts[i][MAX_MACHINES - 1]) é maior que o max_conclusao atual.
+Se sim, atualiza o max_conclusao com o novo valor.
+Impressão do Tempo Máximo de Conclusao:
+
+Exibe o tempo máximo de conclusão, que representa o tempo em que todas as operações de todos os jobs serão finalizadas.
+2. Função main:
+
+Leitura da Matriz do Arquivo TXT:
+
+Abre o arquivo "matriz.txt" para leitura.
+Verifica se o arquivo foi aberto com sucesso.
+Lê a matriz linha por linha, armazenando os valores nas variáveis matriz[i][j].
+Imprime a matriz lida para fins de verificação.
+Fecha o arquivo.
+Chamada da Função calcularStarts:
+
+Passa a matriz lida como argumento para a função calcularStarts.
+Retorno da Função main:
+
+Retorna 0 para indicar a execução bem-sucedida do programa.
