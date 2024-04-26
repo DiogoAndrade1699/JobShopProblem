@@ -1,0 +1,31 @@
+Análise Passo a Passo:
+1. Inclusão da Biblioteca OpenMP:
+
+A biblioteca OpenMP é incluída no início do código (#include <omp.h>) para permitir o uso de diretivas de paralelização.
+2. Paralelização do Loop Principal dos Jobs:
+
+A diretiva #pragma omp parallel for é utilizada antes do loop for principal dos jobs (for (int i = 0; i < MAX_JOBS; i++)).
+Isso indica que o loop será executado em paralelo, com cada iteração sendo executada por uma thread diferente.
+Na prática, isso significa que os cálculos para cada job serão realizados simultaneamente, potencialmente reduzindo o tempo total de execução.
+3. Análise Detalhada do Loop Paralelizado:
+
+Variáveis Locais:
+
+As variáveis start_anterior e maquina_livre são declaradas dentro do loop paralelizado.
+Isso significa que cada thread terá sua própria instância dessas variáveis, evitando conflitos de acesso à memória.
+A variável start_anterior armazena o tempo de início da operação anterior para cada job.
+A variável maquina_livre armazena o tempo de término da última operação em cada máquina.
+Cálculo do Tempo de Início:
+
+Dentro do loop, para cada job i e operação j, o tempo de início (start) é calculado como a soma do start_anterior e da duration da operação.
+O start_anterior é atualizado com o start da operação atual, garantindo que o tempo de início da próxima operação leve em consideração o tempo de término da operação anterior.
+Atualização do maquina_livre:
+
+O maquina_livre da máquina utilizada na operação atual é atualizado com o start da operação.
+Isso garante que o tempo de início da próxima operação na mesma máquina leve em consideração o tempo de término da operação atual.
+4. Atualização do Tempo Máximo de Conclusao:
+
+Fora do loop paralelizado, o tempo máximo de conclusão (max_conclusao) é atualizado com o tempo de início da última operação do último job.
+5. Impressão dos Resultados:
+
+Os resultados, incluindo o job, a máquina e o tempo de início de cada operação, são impressos na tela.
