@@ -1,0 +1,12 @@
+Job	Machine	Start
+0	0	3
+0	1	5
+0	2	7
+1	0	5
+1	1	12
+1	2	8
+2	0	20
+2	1	16
+2	2	19
+Tempo maximo de conclusao: 20
+Tempo decorrido: 0.001000 segundos
