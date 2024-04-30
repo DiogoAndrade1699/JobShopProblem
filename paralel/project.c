@@ -1,14 +1,11 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <time.h>
-#include <stdlib.h>
 
 #define MAX_JOBS 3
 #define MAX_MACHINES 3
 #define OPERATIONS_PER_JOB 3
 #define MAX_OPERATIONS (MAX_JOBS * OPERATIONS_PER_JOB)
-
-pthread_mutex_t mutex; // Mutex para sincronização
 
 // Estrutura para passar argumentos para a função das threads
 typedef struct {
@@ -16,8 +13,10 @@ typedef struct {
     int start_index; // Índice inicial do loop externo
     int end_index;   // Índice final do loop externo
     int starts[MAX_JOBS][MAX_MACHINES];
-    int *max_conclusao;
+    int max_conclusao;
     int maquina_livre[MAX_MACHINES];
+    int thread_index; // Índice da thread
+    FILE *output_file; // Ponteiro para o arquivo de saída
 } ThreadArgs;
 
 // Função para calcular os starts em uma faixa específica de índices do loop externo
@@ -30,9 +29,6 @@ void *calcularStartsThread(void *thread_args) {
             int machine = args->matriz[i][j];
             int duration = args->matriz[i][j + 1];
 
-            // Bloqueia o acesso às variáveis compartilhadas
-            pthread_mutex_lock(&mutex);
-
             // Verifica se a máquina está livre
             if (args->maquina_livre[machine] > start_anterior) {
                 start_anterior = args->maquina_livre[machine];
@@ -41,38 +37,42 @@ void *calcularStartsThread(void *thread_args) {
             int start = start_anterior;
             args->starts[i][machine] = start + duration;
 
-            printf("%d\t%d\t%d\n", i, machine, start);
-
             args->maquina_livre[machine] = args->starts[i][machine];
 
             start_anterior = args->starts[i][machine];
 
             // Atualiza o tempo máximo de conclusão
-            if (args->starts[i][MAX_MACHINES - 1] > *(args->max_conclusao)) {
-                *(args->max_conclusao) = args->starts[i][MAX_MACHINES - 1];
+            if (args->starts[i][MAX_MACHINES - 1] > args->max_conclusao) {
+                args->max_conclusao = args->starts[i][MAX_MACHINES - 1];
             }
 
-            // Libera o mutex
-            pthread_mutex_unlock(&mutex);
+            // Escreve as informações da operação no arquivo
+            fprintf(args->output_file, "Thread %d: %d %d %d\n", args->thread_index, i, machine, start);
         }
     }
 
     pthread_exit(NULL);
 }
 
-// Função para calcular os starts e mostrar os resultados
+// Função para calcular os starts e gravar os resultados em um arquivo
 void calcularStarts(int matriz[MAX_JOBS][OPERATIONS_PER_JOB * 2], int num_threads) {
     int starts[MAX_JOBS][MAX_MACHINES] = {0};
     int max_conclusao = 0;
     int maquina_livre[MAX_MACHINES] = {0}; // Armazena o tempo de término da última operação em cada máquina
 
-    printf("Job\tMachine\tStart\n");
+    FILE *output_file = fopen("resultados.txt", "w");
+    if (output_file == NULL) {
+        printf("Erro ao abrir o arquivo de resultados.\n");
+        return;
+    }
 
     // Registrar o tempo de início
     clock_t start_time = clock();
 
-    // Inicializar o mutex
-    pthread_mutex_init(&mutex, NULL);
+    // Limitar o número de threads ao número de trabalhos
+    if (num_threads > MAX_JOBS) {
+        num_threads = MAX_JOBS;
+    }
 
     // Criar threads
     pthread_t threads[num_threads];
@@ -83,7 +83,9 @@ void calcularStarts(int matriz[MAX_JOBS][OPERATIONS_PER_JOB * 2], int num_thread
     for (int i = 0; i < num_threads; i++) {
         thread_args[i].start_index = i * chunk_size;
         thread_args[i].end_index = (i + 1) * chunk_size;
-        thread_args[i].max_conclusao = &max_conclusao;
+        thread_args[i].max_conclusao = 0; // Inicializa o tempo máximo de conclusão para cada thread
+        thread_args[i].thread_index = i; // Definir o índice da thread
+        thread_args[i].output_file = output_file; // Passa o ponteiro para o arquivo de saída
         for (int j = 0; j < MAX_MACHINES; j++) {
             thread_args[i].maquina_livre[j] = maquina_livre[j];
         }
@@ -103,10 +105,11 @@ void calcularStarts(int matriz[MAX_JOBS][OPERATIONS_PER_JOB * 2], int num_thread
     // Aguardar o término das threads
     for (int i = 0; i < num_threads; i++) {
         pthread_join(threads[i], NULL);
+        // Atualiza o tempo máximo de conclusão global
+        if (thread_args[i].max_conclusao > max_conclusao) {
+            max_conclusao = thread_args[i].max_conclusao;
+        }
     }
-
-    // Liberar o mutex
-    pthread_mutex_destroy(&mutex);
 
     // Registrar o tempo de fim
     clock_t end_time = clock();
@@ -117,8 +120,19 @@ void calcularStarts(int matriz[MAX_JOBS][OPERATIONS_PER_JOB * 2], int num_thread
     // Calcular o tempo máximo de conclusão somando com o tempo de duração da última máquina
     max_conclusao += matriz[MAX_JOBS - 1][OPERATIONS_PER_JOB * 2 - 1];
 
-    printf("Tempo maximo de conclusao: %d\n", max_conclusao);
-    printf("Tempo decorrido: %.6f segundos\n", elapsed_time);
+    // Escrever os resultados no arquivo
+    fprintf(output_file, "Job\tMachine\tStart\n");
+    for (int i = 0; i < MAX_JOBS; i++) {
+        for (int j = 0; j < MAX_MACHINES; j++) {
+            fprintf(output_file, "%d\t%d\t%d\n", i, j, starts[i][j]);
+        }
+    }
+    fprintf(output_file, "Tempo maximo de conclusao: %d\n", max_conclusao);
+    fprintf(output_file, "Tempo decorrido: %.6f segundos\n", elapsed_time);
+
+    fclose(output_file);
+
+    printf("Resultados gravados em 'resultados.txt'.\n");
 }
 
 int main() {
@@ -142,14 +156,12 @@ int main() {
 
     fclose(file);
 
-    // Número de threads a serem usadas
+    // Solicitar o número de threads ao usuário
     int num_threads;
-    printf("Digite o numero de threads (entre 1 e %d): ", MAX_JOBS);
-    scanf("%d", &num_threads);
-    if (num_threads < 1 || num_threads > MAX_JOBS) {
-        printf("Número inválido de threads. Deve ser um número entre 1 e %d.\n", MAX_JOBS);
-        return 1;
-    }
+    do {
+        printf("Digite o numero de threads (maximo %d): ", MAX_JOBS);
+        scanf("%d", &num_threads);
+    } while (num_threads <= 0 || num_threads > MAX_JOBS);
 
     calcularStarts(matriz, num_threads);
     return 0;
