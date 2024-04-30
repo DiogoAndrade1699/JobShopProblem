@@ -9,4 +9,4 @@ Job	Machine	Start
 2	1	16
 2	2	19
 Tempo maximo de conclusao: 20
-Tempo decorrido: 0.001000 segundos
+Tempo decorrido: 0.002000 segundos
