@@ -65,7 +65,7 @@ void calcularStarts(int matriz[MAX_JOBS][MAX_MACHINES * 2], int num_jobs, int op
 
     fclose(file);
 
-    // Registrar o tempo de fim
+    // Registar o tempo de fim
     clock_t end_time = clock();
 
     // Calcular o tempo decorrido em segundos
@@ -94,7 +94,7 @@ int main() {
         return 1;
     }
 
-    // Lendo o número de máquinas e trabalhos
+    //Ler o número de máquinas e trabalhos
     fscanf(file, "%d %d", &num_machines, &num_jobs);
 
     operations_per_job= num_machines;
