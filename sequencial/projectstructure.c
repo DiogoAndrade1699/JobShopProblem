@@ -1,41 +1,50 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
-#define MAX_JOBS 3
-#define MAX_MACHINES 3
-#define OPERATIONS_PER_JOB 3
-#define MAX_OPERATIONS (MAX_JOBS * OPERATIONS_PER_JOB)
+#define MAX_JOBS 100
+#define MAX_MACHINES 100
+#define MAX_OPERATIONS (MAX_JOBS * MAX_MACHINES)
+
+int nmachines = 0;
 
 // Função para calcular os starts e mostrar os resultados
-void calcularStarts(int matriz[MAX_JOBS][OPERATIONS_PER_JOB * 2], const char *output_file_name)
-{
+void calcularStarts(int matriz[MAX_JOBS][MAX_MACHINES * 2], int num_jobs, int operations_per_job, const char *output_file_name) {
     int starts[MAX_JOBS][MAX_MACHINES] = {0};
     int max_conclusao = 0;
     int maquina_livre[MAX_MACHINES] = {0}; // Armazena o tempo de término da última operação em cada máquina
 
-    printf("Job\tMachine\tStart\n");
+    // guardar os resultados em um ficheiro
+    FILE *file = fopen(output_file_name, "w");
+    if (file == NULL) {
+        printf("Erro ao abrir o ficheiro.\n");
+        return;
+    }
 
-    // Registrar o tempo de início
     clock_t start_time = clock();
 
-    for (int i = 0; i < MAX_JOBS; i++)
-    {
+    fprintf(file, "Job\tMachine\tStart\n");
+
+    
+
+    for (int i = 0; i < num_jobs; i++) {
         int start_anterior = 0;
-        for (int j = 0; j < OPERATIONS_PER_JOB * 2; j += 2)
-        {
+        for (int j = 0; j < operations_per_job * 2; j += 2) {
             int machine = matriz[i][j];
+            clock_t midtime = clock();
+            //printf midtime
+            //printf("Tempo de mid: %ld\n", midtime);
             int duration = matriz[i][j + 1];
 
             // Verifica se a máquina está livre
-            if (maquina_livre[machine] > start_anterior)
-            {
+            if (maquina_livre[machine] > start_anterior) {
                 start_anterior = maquina_livre[machine];
             }
 
             int start = start_anterior;
             starts[i][machine] = start + duration;
 
-            printf("%d\t%d\t%d\n", i, machine, start);
+            fprintf(file, "%d\t%d\t%d\n", i, machine, start);
 
             maquina_livre[machine] = starts[i][machine]; // Atualiza o tempo de término da máquina
 
@@ -43,70 +52,57 @@ void calcularStarts(int matriz[MAX_JOBS][OPERATIONS_PER_JOB * 2], const char *ou
         }
 
         // Atualiza o tempo máximo de conclusão
-        if (starts[i][MAX_MACHINES - 1] > max_conclusao)
-        {
-            max_conclusao = starts[i][MAX_MACHINES - 1];
+        if (starts[i][operations_per_job - 1] > max_conclusao) {
+            max_conclusao = starts[i][operations_per_job - 1];
         }
+
+         // Calcular o tempo máximo de conclusão somado com o tempo de duração da última máquina
+        max_conclusao += matriz[num_jobs - 1][operations_per_job * 2 - 1];
     }
+
+    fprintf(file, "Tempo maximo de conclusao: %d\n", max_conclusao);
+
+
+    fclose(file);
 
     // Registrar o tempo de fim
     clock_t end_time = clock();
 
     // Calcular o tempo decorrido em segundos
-    double elapsed_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
+    double elapsed_time = difftime(end_time, start_time) / CLOCKS_PER_SEC;
 
-    // Calcular o tempo máximo de conclusão  somando com o tempo de duração da última máquina
-    max_conclusao += matriz[MAX_JOBS - 1][OPERATIONS_PER_JOB * 2 - 1];
-
-    printf("Tempo maximo de conclusao: %d\n", max_conclusao);
     printf("Tempo decorrido: %.6f segundos\n", elapsed_time);
 
-    // Salvar os resultados em um arquivo
-    FILE *file = fopen(output_file_name, "w");
-    if (file == NULL)
-    {
-        printf("Erro ao abrir o arquivo.\n");
-        return;
-    }
 
-    fprintf(file, "Job\tMachine\tStart\n");
-    for (int i = 0; i < MAX_JOBS; i++)
-    {
-        for (int j = 0; j < MAX_MACHINES; j++)
-        {
-            fprintf(file, "%d\t%d\t%d\n", i, j, starts[i][j]);
-        }
-    }
-
-    fprintf(file, "Tempo maximo de conclusao: %d\n", max_conclusao);
-    fprintf(file, "Tempo decorrido: %.6f segundos\n", elapsed_time);
-
-    fclose(file);
 }
 
-int main()
-{
-    int matriz[MAX_JOBS][OPERATIONS_PER_JOB * 2];
+int main() {
+    int matriz[MAX_JOBS][MAX_MACHINES * 2];
     char input_file_name[100];
     char output_file_name[100];
+    int num_jobs, num_machines;
+    int operations_per_job = 0;
 
-    // Solicitar o nome do arquivo de entrada ao usuário
-    printf("Digite o nome do arquivo de entrada: ");
+    // Solicitar o nome do ficheiro de entrada ao utilizador
+    printf("Digite o nome do ficheiro de entrada: ");
     scanf("%s", input_file_name);
 
-    // Leitura da matriz a partir do arquivo de entrada
+    // Leitura da matriz a partir do ficheiro de entrada
     FILE *file = fopen(input_file_name, "r");
-    if (file == NULL)
-    {
-        printf("Erro ao abrir o arquivo.\n");
+    if (file == NULL) {
+        printf("Erro ao abrir o ficheiro.\n");
         return 1;
     }
 
+    // Lendo o número de máquinas e trabalhos
+    fscanf(file, "%d %d", &num_machines, &num_jobs);
+
+    operations_per_job= num_machines;
+    nmachines = num_machines;
+
     printf("Matriz:\n");
-    for (int i = 0; i < MAX_JOBS; i++)
-    {
-        for (int j = 0; j < OPERATIONS_PER_JOB * 2; j++)
-        {
+    for (int i = 0; i < num_jobs; i++) {
+        for (int j = 0; j < nmachines * 2; j++) {
             fscanf(file, "%d", &matriz[i][j]);
             printf("%d\t", matriz[i][j]);
         }
@@ -115,10 +111,10 @@ int main()
 
     fclose(file);
 
-    // Solicitar o nome do arquivo de saída ao usuário
-    printf("Digite o nome do arquivo de saida: ");
+    // Solicitar o nome do ficheiro de saída ao utilizador
+    printf("Digite o nome do ficheiro de saida: ");
     scanf("%s", output_file_name);
 
-    calcularStarts(matriz, output_file_name);
+    calcularStarts(matriz, num_jobs, nmachines, output_file_name);
     return 0;
 }

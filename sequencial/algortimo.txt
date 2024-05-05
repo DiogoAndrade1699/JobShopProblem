@@ -13,4 +13,6 @@ Para o job 2:
 
 A máquina 1 começa após a máquina 1 do job 1 terminar, então seu start é o tempo de duração da máquina 1 do job 1 (4) + o start da máquina 1 do job 1 (8) = 12.
 A máquina 2 começa após a máquina 1 terminar, então seu start é o tempo de duração da máquina 1 do job 2 (4) + o start da máquina 1 do job 2 (12) = 16.
-A máquina 0 começa após a máquina 2 do job 2 terminar, então seu start é o tempo de duração da máquina 2 do job 2 (3) + o s
+A máquina 0 começa após a máquina 2 do job 2 terminar, então seu start é o tempo de duração da máquina 2 do job 2 (3) + o start da maquina 0 do job 2 = 19.
+
+Por fim o tempo maximo é 20, pois é o ultimo start mais o tempo de duração da ultima maquina.
