@@ -50,7 +50,7 @@ void *calcularStartsThread(void *args) {
             maquina_livre[machine] = start + duration;
             start_anterior = maquina_livre[machine];
 
-            // Libera os mutexes
+            // Libertar os mutexes
             pthread_mutex_unlock(&max_conclusao_mutex);
             pthread_mutex_unlock(&machine_mutex[machine]);
         }
@@ -69,7 +69,7 @@ void calcularStarts(int num_threads, const char *output_file) {
         return;
     }
 
-    // Registrar o tempo de início
+    // Registar o tempo de início
     clock_t start_time = clock();
 
     // Inicializar os mutexes para cada máquina
@@ -88,7 +88,7 @@ void calcularStarts(int num_threads, const char *output_file) {
     ThreadArgs thread_args[num_threads];
 
     // Dividir o trabalho entre as threads
-    int chunk_size = num_jobs / num_threads; // Tamanho do pedaço de trabalho para cada thread
+    int chunk_size = num_jobs / num_threads; // Tamanho de trabalho para cada thread
     for (int i = 0; i < num_threads; i++) {
         thread_args[i].start_index = i * chunk_size;
         thread_args[i].end_index = (i == num_threads - 1) ? num_jobs : (i + 1) * chunk_size;
@@ -128,7 +128,7 @@ void calcularStarts(int num_threads, const char *output_file) {
 
     fclose(file);
 
-    // Registrar o tempo de fim
+    // Registar o tempo de fim
     clock_t end_time = clock();
 
     // Calcular o tempo decorrido em segundos
@@ -159,7 +159,7 @@ int main() {
     int nmachines = 0;
     int numjobs = 0;
 
-    // Lê o ficheiro matriz.txt
+    // Lê o ficheiro matriz.txt e guarda nmachines e o njobs
     fscanf(file, "%d %d", &nmachines, &numjobs);
 
     // Definir variáveis globais
